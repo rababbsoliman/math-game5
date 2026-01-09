@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>لعبة اختبار – الأعداد الصحيحة والقيمة المطلقة</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(#e3f2fd,#ffffff);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+#game{
+    background:#fff;
+    width:90%;
+    max-width:700px;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    padding:25px;
+    text-align:center;
+}
+
+.unit{
+    font-size:18px;
+    color:#0d47a1;
+    font-weight:bold;
+}
+
+.question{
+    font-size:22px;
+    margin:20px 0;
+}
+
+.options{
+    display:grid;
+    gap:15px;
+}
+
+button.option{
+    font-size:18px;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    background:#bbdefb;
+}
+
+button.option:hover{
+    background:#90caf9;
+}
+
+.correct{
+    background:#4caf50 !important;
+    color:#fff;
+}
+
+.wrong{
+    background:#f44336 !important;
+    color:#fff;
+}
+
+#stars{
+    font-size:32px;
+    margin-top:10px;
+    color:gold;
+    display:none;
+}
+
+#feedback{
+    font-size:20px;
+    margin-top:15px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+    <div class="unit" id="unit"></div>
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <div id="stars">⭐ ✨ ⭐</div>
+    <div id="feedback"></div>
+</div>
+
+<!-- أصوات -->
+<audio id="correctSound">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_4c7b7a64a7.mp3">
+</audio>
+
+<audio id="wrongSound">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_5f9d6b1c9b.mp3">
+</audio>
+
+<audio id="successVoice">
+  <source src="https://cdn.pixabay.com/download/audio/2022/10/03/audio_2c2e0b7a4b.mp3">
+</audio>
+
+<audio id="failVoice">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c3b046e9d3.mp3">
+</audio>
+
+<script>
+const questions = [
+{unit:"الدرس 1: الأعداد الصحيحة", q:"ما العدد الذي يمثل خسارة 10 درجات؟", o:["10","-10","0","+10"], a:1},
+{unit:"الدرس 1: الأعداد الصحيحة", q:"أي عدد يمثل إيداع مبلغ مالي؟", o:["عدد سالب","عدد موجب","الصفر","عدد متقابل"], a:1},
+{unit:"الدرس 1: الأعداد الصحيحة", q:"الصفر يمثل:", o:["زيادة","نقصان","عدم زيادة أو نقصان","عدد سالب"], a:2},
+{unit:"الدرس 1: الأعداد الصحيحة", q:"أي مما يلي عدد صحيح سالب؟", o:["+4","0","-3","5"], a:2},
+{unit:"الدرس 1: الأعداد الصحيحة", q:"مقابل العدد -7 هو:", o:["-7","7","0","-14"], a:1},
+
+{unit:"الدرس 2: القيمة المطلقة", q:"القيمة المطلقة للعدد -6 هي:", o:["-6","6","0","12"], a:1},
+{unit:"الدرس 2: القيمة المطلقة", q:"|5| =", o:["-5","5","0","10"], a:1},
+{unit:"الدرس 2: القيمة المطلقة", q:"|-8| =", o:["-8","8","0","16"], a:1},
+{unit:"الدرس 2: القيمة المطلقة", q:"|0| =", o:["0","1","-1","غير معرف"], a:0},
+{unit:"الدرس 2: القيمة المطلقة", q:"|7| + |-3| =", o:["4","10","-10","7"], a:1}
+];
+
+let index = 0;
+const totalStages = 3;
+const stageSize = Math.ceil(questions.length / totalStages);
+
+function loadQuestion(){
+    document.getElementById("stars").style.display="none";
+    document.getElementById("feedback").textContent = "";
+
+    const q = questions[index];
+    const stage = Math.floor(index / stageSize) + 1;
+
+    document.getElementById("unit").textContent =
+        q.unit + " | المرحلة " + stage;
+
+    document.getElementById("question").textContent = q.q;
+
+    const optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
+
+    q.o.forEach((opt,i)=>{
+        const btn = document.createElement("button");
+        btn.textContent = opt;
+        btn.className="option";
+        btn.onclick=()=>checkAnswer(btn,i);
+        optionsDiv.appendChild(btn);
+    });
+}
+
+function checkAnswer(btn,i){
+    const q = questions[index];
+    const feedback = document.getElementById("feedback");
+
+    if(i === q.a){
+        btn.classList.add("correct");
+        document.getElementById("correctSound").play();
+        document.getElementById("successVoice").play();
+
+        document.getElementById("stars").style.display="block";
+        feedback.style.color="#2e7d32";
+        feedback.textContent="أحسنت يا صديقي 🌟";
+
+        setTimeout(()=>{
+            index++;
+            if(index < questions.length){
+                loadQuestion();
+            }else{
+                document.getElementById("game").innerHTML =
+                "<h2>🌟 ممتاز</h2><p>أنهيت جميع المراحل بنجاح</p>";
+            }
+        },1200);
+    }else{
+        btn.classList.add("wrong");
+        document.getElementById("wrongSound").play();
+        document.getElementById("failVoice").play();
+
+        feedback.style.color="#c62828";
+        feedback.textContent="لا بأس، حاول مرة أخرى 💪";
+    }
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
+
+ 
+
+
